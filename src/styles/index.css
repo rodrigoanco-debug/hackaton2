@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #020617;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, select { font: inherit; }
+button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+@layer components {
+  .panel { @apply rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-xl shadow-black/10; }
+  .button-primary { @apply inline-flex items-center justify-center rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300; }
+  .button-secondary { @apply inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300; }
+  .field-label { @apply grid gap-2 text-sm font-medium text-slate-300; }
+  .field-input { @apply min-h-10 w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2 text-slate-100 outline-none transition focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20; }
+  .badge { @apply inline-flex rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-slate-300; }
+}
+
+/* Sector Story Engine — Integrante C */
+.story-shell { view-transition-name: sector-story; }
+.story-progress { position: sticky; top: 7.6rem; z-index: 30; height: .35rem; overflow: hidden; border-radius: 999px; background: rgb(255 255 255 / .08); }
+.story-progress > span { display: block; height: 100%; background: #22d3ee; transition: width 280ms ease; }
+.story-grid { display: grid; gap: 2rem; margin-top: 1.5rem; }
+.story-sticky { align-self: start; }
+.story-visual { position: relative; min-height: 28rem; overflow: hidden; display: grid; align-items: end; border: 1px solid rgb(255 255 255 / .12); border-radius: 1.5rem; padding: 2rem; background: radial-gradient(circle at 70% 20%, color-mix(in srgb, var(--story-color), transparent 15%), transparent 35%), linear-gradient(145deg, color-mix(in srgb, var(--story-color), #020617 68%), #020617 68%); }
+.story-orb { position: absolute; inset: 10% 12% auto auto; width: 15rem; aspect-ratio: 1; border-radius: 50%; background: color-mix(in srgb, var(--story-color), transparent 45%); filter: blur(2px); box-shadow: 0 0 80px var(--story-color); transition: background 350ms ease, box-shadow 350ms ease, transform 700ms ease; }
+.story-orb span { position: absolute; inset: 12%; border: 1px solid rgb(255 255 255 / .35); border-radius: 40% 60% 55% 45%; animation: story-spin 12s linear infinite; }
+.story-orb span:nth-child(2) { inset: 23%; animation-direction: reverse; animation-duration: 8s; }
+.story-orb span:nth-child(3) { inset: 35%; animation-duration: 5s; }
+.story-steps { display: grid; gap: 12vh; }
+.story-step { min-height: 70vh; display: grid; align-content: center; border-left: 2px solid rgb(255 255 255 / .12); padding: 2rem; opacity: .48; transition: opacity 250ms ease, border-color 250ms ease, transform 250ms ease; outline: none; }
+.story-step:focus-visible { box-shadow: inset 0 0 0 2px #67e8f9; border-radius: 1rem; }
+.story-step-active { opacity: 1; border-left-color: #22d3ee; transform: translateX(.5rem); }
+
+@keyframes story-spin { to { transform: rotate(1turn); } }
+
+@supports (animation-timeline: view()) {
+  .story-step { animation: story-reveal linear both; animation-timeline: view(); animation-range: entry 15% cover 48%; }
+  @keyframes story-reveal { from { opacity: .35; transform: translateY(2rem); } to { opacity: 1; transform: translateY(0); } }
+}
+
+@media (min-width: 900px) {
+  .story-grid { grid-template-columns: minmax(0, 1.05fr) minmax(20rem, .95fr); }
+  .story-sticky { position: sticky; top: 9.5rem; }
+}
+
+@media (max-width: 899px) {
+  .story-sticky { position: sticky; top: 8.2rem; z-index: 20; }
+  .story-visual { min-height: 20rem; padding: 1.25rem; }
+  .story-steps { gap: 4rem; }
+  .story-step { min-height: 58vh; padding: 1.5rem; background: rgb(2 6 23 / .84); backdrop-filter: blur(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .story-step { opacity: 1; transform: none; }
+}
