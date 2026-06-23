@@ -131,7 +131,7 @@ export function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             autoComplete="username"
-            placeholder="operator@tuckersoft.com"
+            placeholder="correo@ejemplo.com"
             aria-invalid={Boolean(fieldErrors.email)}
             aria-describedby={fieldErrors.email ? 'email-error' : undefined}
             disabled={isSubmitting}
