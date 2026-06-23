@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { authApi } from '../api/auth.api';
 import type { AuthStatus, AuthUser, LoginRequest } from '../types/auth.types';
+import { ApiError } from '../../../shared/api/ApiError';
 import { tokenStorage } from '../../../shared/lib/tokenStorage';
 
 export interface AuthContextValue {
@@ -38,7 +39,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        logout();
+        // Only a 401 means the stored token is no longer valid -> clear it.
+        if (error instanceof ApiError && error.status === 401) {
+          logout();
+          return;
+        }
+        // Transient failures (network, 5xx, missing config) must NOT destroy a
+        // possibly-valid token. We could not confirm the session, so fall back to
+        // anonymous; a reload will re-attempt /auth/me once the backend recovers.
+        setStatus('anonymous');
       });
 
     return () => controller.abort();

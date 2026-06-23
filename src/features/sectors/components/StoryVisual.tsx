@@ -1,29 +1,65 @@
-import type { CSSProperties } from 'react';
+import { useMemo, type ReactNode } from 'react';
+import { deriveIntensity, pickVariant, resolveClimate, resolveColorToken } from '../lib/storyVisuals';
+import type { VisualClimate } from '../lib/storyVisuals';
 import type { StoryStage } from '../types/sector.types';
+import { CloudAquariumVisual } from './visuals/CloudAquariumVisual';
+import { GenericVisual } from './visuals/GenericVisual';
+import { NeonCaveVisual } from './visuals/NeonCaveVisual';
+import { PixelForestVisual } from './visuals/PixelForestVisual';
+import { RetroArcadeVisual } from './visuals/RetroArcadeVisual';
+import type { ClimateVisualProps } from './visuals/climateVisualProps';
 
-const tokenColors: Record<string, string> = {
-  emerald: '#10b981', cyan: '#06b6d4', violet: '#8b5cf6', amber: '#f59e0b', rose: '#f43f5e', blue: '#3b82f6', lime: '#84cc16', fuchsia: '#d946ef',
-};
-
-export function StoryVisual({ stage }: { stage: StoryStage }) {
-  const color = tokenColors[stage.colorToken.toLowerCase()] ?? '#22d3ee';
-  return (
-    <div className="story-visual" style={{ '--story-color': color } as CSSProperties} aria-live="polite">
-      <div className="story-orb" aria-hidden="true"><span /><span /><span /></div>
-      <div className="relative z-10">
-        <p className="text-xs uppercase tracking-[0.25em] text-white/60">{stage.assetKey}</p>
-        <h2 className="mt-2 text-3xl font-bold">{stage.title}</h2>
-        <p className="mt-2 text-sm text-white/70">Evento dominante: {stage.dominantEvent}</p>
-        <div className="mt-6 grid grid-cols-3 gap-2">
-          <Metric label="Estabilidad" value={stage.metrics.stability} />
-          <Metric label="Energía" value={stage.metrics.energy} />
-          <Metric label="Alertas" value={stage.metrics.alerts} />
-        </div>
-      </div>
-    </div>
-  );
+interface StoryVisualProps {
+  stage: StoryStage;
+  climate: string;
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-xl bg-black/20 p-3 backdrop-blur"><p className="text-xs text-white/60">{label}</p><p className="mt-1 text-xl font-bold">{value}</p></div>;
+function renderScene(climate: VisualClimate, props: ClimateVisualProps): ReactNode {
+  switch (climate) {
+    case 'PIXEL_FOREST':
+      return <PixelForestVisual {...props} />;
+    case 'NEON_CAVE':
+      return <NeonCaveVisual {...props} />;
+    case 'CLOUD_AQUARIUM':
+      return <CloudAquariumVisual {...props} />;
+    case 'RETRO_ARCADE':
+      return <RetroArcadeVisual {...props} />;
+    case 'GENERIC':
+      return <GenericVisual {...props} />;
+    default:
+      return <GenericVisual {...props} />;
+  }
+}
+
+/**
+ * Persistent visual for the active stage. Deterministically interprets climate,
+ * assetKey, colorToken, dominantEvent and metrics — no remote assets, no IA.
+ */
+export function StoryVisual({ stage, climate }: StoryVisualProps) {
+  const resolvedClimate = resolveClimate(climate);
+  const seed = stage.assetKey || stage.id;
+
+  const visualProps = useMemo<ClimateVisualProps>(
+    () => ({
+      color: resolveColorToken(stage.colorToken),
+      intensity: deriveIntensity(stage.metrics),
+      seed,
+      variant: pickVariant(seed, 5),
+      event: stage.dominantEvent,
+    }),
+    [stage.colorToken, stage.metrics, stage.dominantEvent, seed],
+  );
+
+  return (
+    <figure className="story-visual">
+      <div className="story-visual-scene">{renderScene(resolvedClimate, visualProps)}</div>
+      <figcaption className="story-visual-caption">
+        <span className="story-visual-chip">{climate || 'CLIMA DESCONOCIDO'}</span>
+        <span className="story-visual-chip story-visual-chip-muted">{stage.assetKey || 'sin-asset'}</span>
+        <p className="story-visual-event">
+          Evento dominante: <strong>{stage.dominantEvent || '—'}</strong>
+        </p>
+      </figcaption>
+    </figure>
+  );
 }
