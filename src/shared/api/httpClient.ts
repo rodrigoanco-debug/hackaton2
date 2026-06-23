@@ -4,8 +4,13 @@ import type { ApiErrorBody } from '../types/api.types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
 
+/** True when the frontend has a backend URL configured. */
+export function isApiConfigured(): boolean {
+  return Boolean(apiBaseUrl);
+}
+
 if (!apiBaseUrl) {
-  console.warn('Falta VITE_API_BASE_URL. Copia .env.example como .env.');
+  console.warn('Falta VITE_API_BASE_URL. Copia .env.example como .env y define la URL del backend.');
 }
 
 async function parseJson(response: Response): Promise<unknown> {
@@ -26,6 +31,14 @@ function isApiErrorBody(value: unknown): value is ApiErrorBody {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (!apiBaseUrl) {
+    throw new ApiError(0, {
+      error: 'CONFIG_MISSING',
+      message:
+        'Falta configurar VITE_API_BASE_URL. Define la URL del backend en .env para conectar el control room.',
+    });
+  }
+
   const token = tokenStorage.get();
   const headers = new Headers(init.headers);
 
